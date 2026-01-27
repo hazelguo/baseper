@@ -1,0 +1,70 @@
+name: Build Baseper
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ created ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+    - name: Build
+      run: |
+        xcodebuild -project Baseper.xcodeproj \
+          -scheme Baseper \
+          -configuration Release \
+          -derivedDataPath ./build \
+          build
+
+    - name: Create DMG
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+      run: |
+        APP_PATH="./build/Build/Products/Release/Baseper.app"
+
+        # Ad-hoc sign the app
+        codesign --force --deep -s - "$APP_PATH"
+
+        # Create a temporary directory for DMG contents
+        mkdir -p dmg_temp
+        cp -R "$APP_PATH" dmg_temp/
+        ln -s /Applications dmg_temp/Applications
+
+        # Create DMG
+        sync
+        sleep 2
+        hdiutil create -volname "Baseper" -srcfolder dmg_temp -ov -format UDZO Baseper.dmg
+
+    - name: Upload Release Asset
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        files: ./Baseper.dmg
+
+    - name: Upload DMG Artifact
+      if: github.event_name == 'workflow_dispatch'
+      uses: actions/upload-artifact@v4
+      with:
+        name: Baseper-DMG
+        path: Baseper.dmg
+
+    - name: Upload Build Artifact
+      if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+      uses: actions/upload-artifact@v4
+      with:
+        name: Baseper
+        path: build/Build/Products/Release/Baseper.app
