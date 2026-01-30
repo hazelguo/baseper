@@ -4,6 +4,13 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Baseper — Free Speech to Text App for Mac | $0.02/hr, Open Source",
   description: "Open source macOS menu bar app for real-time speech-to-text. Bring your own API key — starting at $0.02/hr. No subscription, no data collection.",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   keywords: ["transcription", "speech to text", "voice to text", "macOS", "menu bar app", "dictation", "open source", "BYOK", "voice transcription", "mac transcription app", "otter.ai alternative", "wispr flow alternative"],
   openGraph: {
     title: "Baseper — Free Speech to Text App for Mac | Open Source",
